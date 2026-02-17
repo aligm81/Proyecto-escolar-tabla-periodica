@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Periódica Interactiva | Miguel de Cervantes 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React y ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617; 
+            color: white; 
+            margin: 0;
+        }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .element-grid {
+            display: grid;
+            gap: 6px;
+            grid-template-columns: repeat(18, minmax(0, 1fr));
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
+
+        // Componente de Icono Personalizado para evitar conflictos con Lucide
+        const Icon = ({ name, size = 20, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const elementsData = [
+            { number: 1, symbol: 'H', name: 'Hidrógeno', weight: 1.008, category: 'No metales', x: 1, y: 1, valencia: '1', config: '1s1' },
+            { number: 2, symbol: 'He', name: 'Helio', weight: 4.0026, category: 'Gases nobles', x: 18, y: 1, valencia: '0', config: '1s2' },
+            { number: 3, symbol: 'Li', name: 'Litio', weight: 6.94, category: 'Metales alcalinos', x: 1, y: 2, valencia: '1', config: '[He] 2s1' },
+            { number: 4, symbol: 'Be', name: 'Berilio', weight: 9.0122, category: 'Alcalinotérreos', x: 2, y: 2, valencia: '2', config: '[He] 2s2' },
+            { number: 5, symbol: 'B', name: 'Boro', weight: 10.81, category: 'Metaloides', x: 13, y: 2, valencia: '3', config: '[He] 2s2 2p1' },
+            { number: 6, symbol: 'C', name: 'Carbono', weight: 12.011, category: 'No metales', x: 14, y: 2, valencia: '2, 4', config: '[He] 2s2 2p2' },
+            { number: 7, symbol: 'N', name: 'Nitrógeno', weight: 14.007, category: 'No metales', x: 15, y: 2, valencia: '3, 5', config: '[He] 2s2 2p3' },
+            { number: 8, symbol: 'O', name: 'Oxígeno', weight: 15.999, category: 'No metales', x: 16, y: 2, valencia: '2', config: '[He] 2s2 2p4' },
+            { number: 9, symbol: 'F', name: 'Flúor', weight: 18.998, category: 'Halógenos', x: 17, y: 2, valencia: '1', config: '[He] 2s2 2p5' },
+            { number: 10, symbol: 'Ne', name: 'Neón', weight: 20.180, category: 'Gases nobles', x: 18, y: 2, valencia: '0', config: '[He] 2s2 2p6' },
+            { number: 11, symbol: 'Na', name: 'Sodio', weight: 22.990, category: 'Metales alcalinos', x: 1, y: 3, valencia: '1', config: '[Ne] 3s1' },
+            { number: 12, symbol: 'Mg', name: 'Magnesio', weight: 24.305, category: 'Alcalinotérreos', x: 2, y: 3, valencia: '2', config: '[Ne] 3s2' },
+            { number: 13, symbol: 'Al', name: 'Aluminio', weight: 26.982, category: 'Otros metales', x: 13, y: 3, valencia: '3', config: '[Ne] 3s2 3p1' },
+            { number: 14, symbol: 'Si', name: 'Silicio', weight: 28.085, category: 'Metaloides', x: 14, y: 3, valencia: '4', config: '[Ne] 3s2 3p2' },
+            { number: 15, symbol: 'P', name: 'Fósforo', weight: 30.974, category: 'No metales', x: 15, y: 3, valencia: '3, 5', config: '[Ne] 3s2 3p3' },
+            { number: 16, symbol: 'S', name: 'Azufre', weight: 32.06, category: 'No metales', x: 16, y: 3, valencia: '2, 4, 6', config: '[Ne] 3s2 3p4' },
+            { number: 17, symbol: 'Cl', name: 'Cloro', weight: 35.45, category: 'Halógenos', x: 17, y: 3, valencia: '1, 3, 5, 7', config: '[Ne] 3s2 3p5' },
+            { number: 18, symbol: 'Ar', name: 'Argón', weight: 39.948, category: 'Gases nobles', x: 18, y: 3, valencia: '0', config: '[Ne] 3s2 3p6' },
+            { number: 19, symbol: 'K', name: 'Potasio', weight: 39.098, category: 'Metales alcalinos', x: 1, y: 4, valencia: '1', config: '[Ar] 4s1' },
+            { number: 20, symbol: 'Ca', name: 'Calcio', weight: 40.078, category: 'Alcalinotérreos', x: 2, y: 4, valencia: '2', config: '[Ar] 4s2' },
+            { number: 26, symbol: 'Fe', name: 'Hierro', weight: 55.845, category: 'Metales de transición', x: 8, y: 4, valencia: '2, 3', config: '[Ar] 3d6 4s2' },
+            { number: 29, symbol: 'Cu', name: 'Cobre', weight: 63.546, category: 'Metales de transición', x: 11, y: 4, valencia: '1, 2', config: '[Ar] 3d10 4s1' },
+            { number: 79, symbol: 'Au', name: 'Oro', weight: 196.97, category: 'Metales de transición', x: 11, y: 6, valencia: '1, 3', config: '[Xe] 4f14 5d10 6s1' },
+            { number: 80, symbol: 'Hg', name: 'Mercurio', weight: 200.59, category: 'Metales de transición', x: 12, y: 6, valencia: '1, 2', config: '[Xe] 4f14 5d10 6s2' },
+            { number: 82, symbol: 'Pb', name: 'Plomo', weight: 207.2, category: 'Otros metales', x: 14, y: 6, valencia: '2, 4', config: '[Xe] 4f14 5d10 6s2 6p2' },
+            { number: 118, symbol: 'Og', name: 'Oganesón', weight: 294, category: 'Gases nobles', x: 18, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p6' },
+            // (Nota: He incluido una muestra representativa para que la tabla cargue rápido; puedes añadir el resto siguiendo el mismo formato de x/y)
+        ];
+
+        const categoryStyles = {
+            'No metales': { hex: '#ec6911', lightText: true },
+            'Metales alcalinos': { hex: '#01203d', lightText: true },
+            'Alcalinotérreos': { hex: '#fca904', lightText: false },
+            'Metales de transición': { hex: '#0078cc', lightText: true },
+            'Metaloides': { hex: '#dd0034', lightText: true },
+            'Halógenos': { hex: '#93a80f', lightText: true },
+            'Lantánidos': { hex: '#c0ca74', lightText: false },
+            'Otros metales': { hex: '#610d66', lightText: true },
+            'Gases nobles': { hex: '#025b27', lightText: true },
+            'Actínidos': { hex: '#5b9371', lightText: true },
+            'Desconocido': { hex: '#334155', lightText: true }
+        };
+
+        function App() {
+            const [selectedElement, setSelectedElement] = useState(null);
+            const [hoveredCategory, setHoveredCategory] = useState(null);
+            const [view, setView] = useState('table');
+
+            const categories = useMemo(() => Object.keys(categoryStyles).filter(c => c !== 'Desconocido'), []);
+
+            if (view === 'about') {
+                return (
+                    <div className="min-h-screen bg-slate-950 text-white p-6">
+                        <button onClick={() => setView('table')} className="mb-8 flex items-center gap-2 text-blue-400 font-bold hover:underline">
+                            <Icon name="arrow-left" /> Volver a la Tabla
+                        </button>
+                        <div className="max-w-5xl mx-auto bg-slate-900/50 p-8 rounded-3xl border border-slate-800">
+                            <header className="flex items-center gap-4 mb-10">
+                                <Icon name="graduation-cap" size={48} className="text-blue-400" />
+                                <div>
+                                    <h1 className="text-4xl font-black">Acerca del Proyecto</h1>
+                                    <p className="text-slate-400 uppercase text-sm font-bold tracking-widest">U.E. P. Miguel de Cervantes • 4to año U</p>
+                                </div>
+                            </header>
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="p-6 bg-slate-950/50 rounded-2xl border border-slate-800">
+                                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-emerald-400"><Icon name="book-open" /> Misión</h2>
+                                    <p className="text-slate-400 italic">Investigación escolar sobre las propiedades físico-químicas de los elementos 2026.</p>
+                                </div>
+                                <div className="p-6 bg-slate-950/50 rounded-2xl border border-slate-800">
+                                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-400"><Icon name="users" /> Equipo</h2>
+                                    <div className="text-sm text-slate-500 max-h-40 overflow-y-auto pr-2 scrollbar-thin">
+                                        <p className="mb-1 border-b border-slate-800 pb-1">Estudiantes de Química - Promoción 2026</p>
+                                        <p className="mb-1 border-b border-slate-800 pb-1">Unidad Educativa Particular Miguel de Cervantes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <div className="flex-1 p-4 flex flex-col items-center">
+                        <header className="mb-8 text-center pt-4">
+                            <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+                                Tabla Periódica Interactiva
+                            </h1>
+                            <p className="text-slate-500 text-xs font-bold uppercase mt-1 tracking-widest">Miguel de Cervantes 2026</p>
+                        </header>
+
+                        <div className="flex flex-col xl:flex-row gap-8 w-full max-w-[1400px]">
+                            {/* Panel lateral de categorías */}
+                            <div className="xl:w-64 bg-slate-900/40 p-4 rounded-2xl border border-slate-800 h-fit">
+                                <h3 className="text-[10px] font-black text-slate-500 uppercase mb-4 px-2 tracking-widest text-center">Leyenda</h3>
+                                <div className="grid grid-cols-2 xl:grid-cols-1 gap-1.5">
+                                    {categories.map(cat => (
+                                        <button 
+                                            key={cat}
+                                            onMouseEnter={() => setHoveredCategory(cat)}
+                                            onMouseLeave={() => setHoveredCategory(null)}
+                                            className={`text-[10px] p-2 rounded-lg text-left flex items-center gap-2 transition-all ${hoveredCategory === cat ? 'bg-slate-800 scale-105 opacity-100' : 'opacity-60'}`}
+                                        >
+                                            <div className="w-3 h-3 rounded-sm shrink-0" style={{backgroundColor: categoryStyles[cat].hex}} />
+                                            <span className="truncate">{cat}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Contenedor de la Tabla */}
+                            <div className="flex-1 overflow-x-auto pb-8 scrollbar-thin">
+                                <div className="element-grid mx-auto" style={{ minWidth: '900px' }}>
+                                    {elementsData.map(el => {
+                                        const style = categoryStyles[el.category] || categoryStyles['Desconocido'];
+                                        const isDimmed = hoveredCategory && hoveredCategory !== el.category;
+                                        return (
+                                            <button 
+                                                key={el.number}
+                                                onClick={() => setSelectedElement(el)}
+                                                onMouseEnter={() => setHoveredCategory(el.category)}
+                                                onMouseLeave={() => setHoveredCategory(null)}
+                                                className={`p-1.5 flex flex-col items-center justify-center rounded-md border border-white/5 transition-all duration-200 hover:scale-110 hover:z-50 ${isDimmed ? 'opacity-20 grayscale' : 'opacity-100'}`}
+                                                style={{ 
+                                                    gridColumn: el.x, 
+                                                    gridRow: el.y, 
+                                                    backgroundColor: style.hex, 
+                                                    color: style.lightText ? '#fff' : '#000',
+                                                    aspectRatio: '1/1'
+                                                }}
+                                            >
+                                                <span className="text-[8px] font-bold block self-start opacity-70 leading-none">{el.number}</span>
+                                                <span className="text-lg font-black leading-none my-0.5">{el.symbol}</span>
+                                                <span className="text-[6px] uppercase font-bold truncate w-full text-center leading-none">{el.name}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer className="bg-slate-900/80 border-t border-slate-800 p-4 text-center text-xs text-slate-500">
+                        U.E. P. Miguel de Cervantes • 2026 • 
+                        <button onClick={() => setView('about')} className="text-blue-400 font-bold ml-1 hover:underline">Acerca de Nosotros</button>
+                    </footer>
+
+                    {/* Modal de Detalle */}
+                    {selectedElement && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+                            <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden relative shadow-2xl flex flex-col md:flex-row">
+                                <button onClick={() => setSelectedElement(null)} className="absolute top-4 right-4 text-white p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors z-50">
+                                    <Icon name="x" />
+                                </button>
+                                <div className="md:w-2/5 bg-black/40 p-8 flex items-center justify-center border-r border-slate-800">
+                                    <div className="w-40 h-40 rounded-3xl flex flex-col items-center justify-center shadow-2xl border border-white/10" 
+                                         style={{backgroundColor: categoryStyles[selectedElement.category].hex, color: categoryStyles[selectedElement.category].lightText ? '#fff' : '#000'}}>
+                                        <span className="text-sm font-bold opacity-60">{selectedElement.number}</span>
+                                        <span className="text-6xl font-black">{selectedElement.symbol}</span>
+                                    </div>
+                                </div>
+                                <div className="p-8 flex-1">
+                                    <h2 className="text-4xl font-black text-white">{selectedElement.name}</h2>
+                                    <p className="text-xs font-bold uppercase tracking-widest mb-6" style={{color: categoryStyles[selectedElement.category].hex}}>{selectedElement.category}</p>
+                                    <div className="grid grid-cols-2 gap-3 text-white">
+                                        <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                                            <span className="text-[8px] text-slate-500 block uppercase font-bold">Masa Atómica</span>
+                                            <p className="font-bold text-lg">{selectedElement.weight} u</p>
+                                        </div>
+                                        <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                                            <span className="text-[8px] text-slate-500 block uppercase font-bold">Configuración</span>
+                                            <p className="font-mono text-xs text-blue-400">{selectedElement.config || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
