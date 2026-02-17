@@ -1,0 +1,380 @@
+import React, { useState, useMemo } from 'react';
+import { X, Play, Users, BookOpen, ArrowLeft, GraduationCap } from 'lucide-react';
+
+// --- BASE DE DATOS COMPLETA DE 118 ELEMENTOS ---
+const elementsData = [
+  // Periodo 1
+  { number: 1, symbol: 'H', name: 'Hidrógeno', weight: 1.008, category: 'No metales', x: 1, y: 1, valencia: '1', config: '1s1' },
+  { number: 2, symbol: 'He', name: 'Helio', weight: 4.0026, category: 'Gases nobles', x: 18, y: 1, valencia: '0', config: '1s2' },
+  // Periodo 2
+  { number: 3, symbol: 'Li', name: 'Litio', weight: 6.94, category: 'Metales alcalinos', x: 1, y: 2, valencia: '1', config: '[He] 2s1' },
+  { number: 4, symbol: 'Be', name: 'Berilio', weight: 9.0122, category: 'Alcalinotérreos', x: 2, y: 2, valencia: '2', config: '[He] 2s2' },
+  { number: 5, symbol: 'B', name: 'Boro', weight: 10.81, category: 'Metaloides', x: 13, y: 2, valencia: '3', config: '[He] 2s2 2p1' },
+  { number: 6, symbol: 'C', name: 'Carbono', weight: 12.011, category: 'No metales', x: 14, y: 2, valencia: '2, 4', config: '[He] 2s2 2p2' },
+  { number: 7, symbol: 'N', name: 'Nitrógeno', weight: 14.007, category: 'No metales', x: 15, y: 2, valencia: '3, 5', config: '[He] 2s2 2p3' },
+  { number: 8, symbol: 'O', name: 'Oxígeno', weight: 15.999, category: 'No metales', x: 16, y: 2, valencia: '2', config: '[He] 2s2 2p4' },
+  { number: 9, symbol: 'F', name: 'Flúor', weight: 18.998, category: 'Halógenos', x: 17, y: 2, valencia: '1', config: '[He] 2s2 2p5' },
+  { number: 10, symbol: 'Ne', name: 'Neón', weight: 20.180, category: 'Gases nobles', x: 18, y: 2, valencia: '0', config: '[He] 2s2 2p6' },
+  // Periodo 3
+  { number: 11, symbol: 'Na', name: 'Sodio', weight: 22.990, category: 'Metales alcalinos', x: 1, y: 3, valencia: '1', config: '[Ne] 3s1' },
+  { number: 12, symbol: 'Mg', name: 'Magnesio', weight: 24.305, category: 'Alcalinotérreos', x: 2, y: 3, valencia: '2', config: '[Ne] 3s2' },
+  { number: 13, symbol: 'Al', name: 'Aluminio', weight: 26.982, category: 'Otros metales', x: 13, y: 3, valencia: '3', config: '[Ne] 3s2 3p1' },
+  { number: 14, symbol: 'Si', name: 'Silicio', weight: 28.085, category: 'Metaloides', x: 14, y: 3, valencia: '4', config: '[Ne] 3s2 3p2' },
+  { number: 15, symbol: 'P', name: 'Fósforo', weight: 30.974, category: 'No metales', x: 15, y: 3, valencia: '3, 5', config: '[Ne] 3s2 3p3' },
+  { number: 16, symbol: 'S', name: 'Azufre', weight: 32.06, category: 'No metales', x: 16, y: 3, valencia: '2, 4, 6', config: '[Ne] 3s2 3p4' },
+  { number: 17, symbol: 'Cl', name: 'Cloro', weight: 35.45, category: 'Halógenos', x: 17, y: 3, valencia: '1, 3, 5, 7', config: '[Ne] 3s2 3p5' },
+  { number: 18, symbol: 'Ar', name: 'Argón', weight: 39.948, category: 'Gases nobles', x: 18, y: 3, valencia: '0', config: '[Ne] 3s2 3p6' },
+  // Periodo 4
+  { number: 19, symbol: 'K', name: 'Potasio', weight: 39.098, category: 'Metales alcalinos', x: 1, y: 4, valencia: '1', config: '[Ar] 4s1' },
+  { number: 20, symbol: 'Ca', name: 'Calcio', weight: 40.078, category: 'Alcalinotérreos', x: 2, y: 4, valencia: '2', config: '[Ar] 4s2' },
+  { number: 21, symbol: 'Sc', name: 'Escandio', weight: 44.956, category: 'Metales de transición', x: 3, y: 4, valencia: '3', config: '[Ar] 3d1 4s2' },
+  { number: 22, symbol: 'Ti', name: 'Titanio', weight: 47.867, category: 'Metales de transición', x: 4, y: 4, valencia: '4', config: '[Ar] 3d2 4s2' },
+  { number: 23, symbol: 'V', name: 'Vanadio', weight: 50.942, category: 'Metales de transición', x: 5, y: 4, valencia: '5', config: '[Ar] 3d3 4s2' },
+  { number: 24, symbol: 'Cr', name: 'Cromo', weight: 51.996, category: 'Metales de transición', x: 6, y: 4, valencia: '3, 6', config: '[Ar] 3d5 4s1' },
+  { number: 25, symbol: 'Mn', name: 'Manganeso', weight: 54.938, category: 'Metales de transición', x: 7, y: 4, valencia: '2, 4, 7', config: '[Ar] 3d5 4s2' },
+  { number: 26, symbol: 'Fe', name: 'Hierro', weight: 55.845, category: 'Metales de transición', x: 8, y: 4, valencia: '2, 3', config: '[Ar] 3d6 4s2' },
+  { number: 27, symbol: 'Co', name: 'Cobalto', weight: 58.933, category: 'Metales de transición', x: 9, y: 4, valencia: '2, 3', config: '[Ar] 3d7 4s2' },
+  { number: 28, symbol: 'Ni', name: 'Níquel', weight: 58.693, category: 'Metales de transición', x: 10, y: 4, valencia: '2, 3', config: '[Ar] 3d8 4s2' },
+  { number: 29, symbol: 'Cu', name: 'Cobre', weight: 63.546, category: 'Metales de transición', x: 11, y: 4, valencia: '1, 2', config: '[Ar] 3d10 4s1' },
+  { number: 30, symbol: 'Zn', name: 'Zinc', weight: 65.38, category: 'Metales de transición', x: 12, y: 4, valencia: '2', config: '[Ar] 3d10 4s2' },
+  { number: 31, symbol: 'Ga', name: 'Galio', weight: 69.723, category: 'Otros metales', x: 13, y: 4, valencia: '3', config: '[Ar] 3d10 4s2 4p1' },
+  { number: 32, symbol: 'Ge', name: 'Germanio', weight: 72.63, category: 'Metaloides', x: 14, y: 4, valencia: '4', config: '[Ar] 3d10 4s2 4p2' },
+  { number: 33, symbol: 'As', name: 'Arsénico', weight: 74.922, category: 'Metaloides', x: 15, y: 4, valencia: '3, 5', config: '[Ar] 3d10 4s2 4p3' },
+  { number: 34, symbol: 'Se', name: 'Selenio', weight: 78.96, category: 'No metales', x: 16, y: 4, valencia: '2, 4, 6', config: '[Ar] 3d10 4s2 4p4' },
+  { number: 35, symbol: 'Br', name: 'Bromo', weight: 79.904, category: 'Halógenos', x: 17, y: 4, valencia: '1, 3, 5, 7', config: '[Ar] 3d10 4s2 4p5' },
+  { number: 36, symbol: 'Kr', name: 'Kriptón', weight: 83.798, category: 'Gases nobles', x: 18, y: 4, valencia: '0', config: '[Ar] 3d10 4s2 4p6' },
+  // Periodo 5
+  { number: 37, symbol: 'Rb', name: 'Rubidio', weight: 85.468, category: 'Metales alcalinos', x: 1, y: 5, valencia: '1', config: '[Kr] 5s1' },
+  { number: 38, symbol: 'Sr', name: 'Estroncio', weight: 87.62, category: 'Alcalinotérreos', x: 2, y: 5, valencia: '2', config: '[Kr] 5s2' },
+  { number: 39, symbol: 'Y', name: 'Itrio', weight: 88.906, category: 'Metales de transición', x: 3, y: 5, valencia: '3', config: '[Kr] 4d1 5s2' },
+  { number: 40, symbol: 'Zr', name: 'Circonio', weight: 91.224, category: 'Metales de transición', x: 4, y: 5, valencia: '4', config: '[Kr] 4d2 5s2' },
+  { number: 41, symbol: 'Nb', name: 'Niobio', weight: 92.906, category: 'Metales de transición', x: 5, y: 5, valencia: '3, 5', config: '[Kr] 4d4 5s1' },
+  { number: 42, symbol: 'Mo', name: 'Molibdeno', weight: 95.95, category: 'Metales de transición', x: 6, y: 5, valencia: '6', config: '[Kr] 4d5 5s1' },
+  { number: 43, symbol: 'Tc', name: 'Tecnecio', weight: 98, category: 'Metales de transición', x: 7, y: 5, valencia: '7', config: '[Kr] 4d5 5s2' },
+  { number: 44, symbol: 'Ru', name: 'Rutenio', weight: 101.07, category: 'Metales de transición', x: 8, y: 5, valencia: '3, 4, 8', config: '[Kr] 4d7 5s1' },
+  { number: 45, symbol: 'Rh', name: 'Rodio', weight: 102.91, category: 'Metales de transición', x: 9, y: 5, valencia: '3', config: '[Kr] 4d8 5s1' },
+  { number: 46, symbol: 'Pd', name: 'Paladio', weight: 106.42, category: 'Metales de transición', x: 10, y: 5, valencia: '2, 4', config: '[Kr] 4d10' },
+  { number: 47, symbol: 'Ag', name: 'Plata', weight: 107.87, category: 'Metales de transición', x: 11, y: 5, valencia: '1', config: '[Kr] 4d10 5s1' },
+  { number: 48, symbol: 'Cd', name: 'Cadmio', weight: 112.41, category: 'Metales de transición', x: 12, y: 5, valencia: '2', config: '[Kr] 4d10 5s2' },
+  { number: 49, symbol: 'In', name: 'Indio', weight: 114.82, category: 'Otros metales', x: 13, y: 5, valencia: '3', config: '[Kr] 4d10 5s2 5p1' },
+  { number: 50, symbol: 'Sn', name: 'Estaño', weight: 118.71, category: 'Otros metales', x: 14, y: 5, valencia: '2, 4', config: '[Kr] 4d10 5s2 5p2' },
+  { number: 51, symbol: 'Sb', name: 'Antimonio', weight: 121.76, category: 'Metaloides', x: 15, y: 5, valencia: '3, 5', config: '[Kr] 4d10 5s2 5p3' },
+  { number: 52, symbol: 'Te', name: 'Teluro', weight: 127.60, category: 'Metaloides', x: 16, y: 5, valencia: '2, 4, 6', config: '[Kr] 4d10 5s2 5p4' },
+  { number: 53, symbol: 'I', name: 'Yodo', weight: 126.90, category: 'Halógenos', x: 17, y: 5, valencia: '1, 3, 5, 7', config: '[Kr] 4d10 5s2 5p5' },
+  { number: 54, symbol: 'Xe', name: 'Xenón', weight: 131.29, category: 'Gases nobles', x: 18, y: 5, valencia: '0', config: '[Kr] 4d10 5s2 5p6' },
+  // Periodo 6
+  { number: 55, symbol: 'Cs', name: 'Cesio', weight: 132.91, category: 'Metales alcalinos', x: 1, y: 6, valencia: '1', config: '[Xe] 6s1' },
+  { number: 56, symbol: 'Ba', name: 'Bario', weight: 137.33, category: 'Alcalinotérreos', x: 2, y: 6, valencia: '2', config: '[Xe] 6s2' },
+  { number: 72, symbol: 'Hf', name: 'Hafnio', weight: 178.49, category: 'Metales de transición', x: 4, y: 6, valencia: '4', config: '[Xe] 4f14 5d2 6s2' },
+  { number: 73, symbol: 'Ta', name: 'Tantalio', weight: 180.95, category: 'Metales de transición', x: 5, y: 6, valencia: '5', config: '[Xe] 4f14 5d3 6s2' },
+  { number: 74, symbol: 'W', name: 'Wolframio', weight: 183.84, category: 'Metales de transición', x: 6, y: 6, valencia: '6', config: '[Xe] 4f14 5d4 6s2' },
+  { number: 75, symbol: 'Re', name: 'Renio', weight: 186.21, category: 'Metales de transición', x: 7, y: 6, valencia: '7', config: '[Xe] 4f14 5d5 6s2' },
+  { number: 76, symbol: 'Os', name: 'Osmio', weight: 190.23, category: 'Metales de transición', x: 8, y: 6, valencia: '2, 3, 4, 8', config: '[Xe] 4f14 5d6 6s2' },
+  { number: 77, symbol: 'Ir', name: 'Iridio', weight: 192.22, category: 'Metales de transición', x: 9, y: 6, valencia: '3, 4', config: '[Xe] 4f14 5d7 6s2' },
+  { number: 78, symbol: 'Pt', name: 'Platino', weight: 195.08, category: 'Metales de transición', x: 10, y: 6, valencia: '2, 4', config: '[Xe] 4f14 5d9 6s1' },
+  { number: 79, symbol: 'Au', name: 'Oro', weight: 196.97, category: 'Metales de transición', x: 11, y: 6, valencia: '1, 3', config: '[Xe] 4f14 5d10 6s1' },
+  { number: 80, symbol: 'Hg', name: 'Mercurio', weight: 200.59, category: 'Metales de transición', x: 12, y: 6, valencia: '1, 2', config: '[Xe] 4f14 5d10 6s2' },
+  { number: 81, symbol: 'Tl', name: 'Talio', weight: 204.38, category: 'Otros metales', x: 13, y: 6, valencia: '1, 3', config: '[Xe] 4f14 5d10 6s2 6p1' },
+  { number: 82, symbol: 'Pb', name: 'Plomo', weight: 207.2, category: 'Otros metales', x: 14, y: 6, valencia: '2, 4', config: '[Xe] 4f14 5d10 6s2 6p2' },
+  { number: 83, symbol: 'Bi', name: 'Bismuto', weight: 208.98, category: 'Otros metales', x: 15, y: 6, valencia: '3, 5', config: '[Xe] 4f14 5d10 6s2 6p3' },
+  { number: 84, symbol: 'Po', name: 'Polonio', weight: 209, category: 'Metaloides', x: 16, y: 6, valencia: '2, 4', config: '[Xe] 4f14 5d10 6s2 6p4' },
+  { number: 85, symbol: 'At', name: 'Astato', weight: 210, category: 'Halógenos', x: 17, y: 6, valencia: '1, 3, 5, 7', config: '[Xe] 4f14 5d10 6s2 6p5' },
+  { number: 86, symbol: 'Rn', name: 'Radón', weight: 222, category: 'Gases nobles', x: 18, y: 6, valencia: '0', config: '[Xe] 4f14 5d10 6s2 6p6' },
+  // Periodo 7
+  { number: 87, symbol: 'Fr', name: 'Francio', weight: 223, category: 'Metales alcalinos', x: 1, y: 7, valencia: '1', config: '[Rn] 7s1' },
+  { number: 88, symbol: 'Ra', name: 'Radio', weight: 226, category: 'Alcalinotérreos', x: 2, y: 7, valencia: '2', config: '[Rn] 7s2' },
+  { number: 104, symbol: 'Rf', name: 'Rutherfordio', weight: 267, category: 'Metales de transición', x: 4, y: 7, valencia: '4', config: '[Rn] 5f14 6d2 7s2' },
+  { number: 105, symbol: 'Db', name: 'Dubnio', weight: 268, category: 'Metales de transición', x: 5, y: 7, valencia: '5', config: '[Rn] 5f14 6d3 7s2' },
+  { number: 106, symbol: 'Sg', name: 'Seaborgio', weight: 269, category: 'Metales de transición', x: 6, y: 7, valencia: '6', config: '[Rn] 5f14 6d4 7s2' },
+  { number: 107, symbol: 'Bh', name: 'Bohrio', weight: 270, category: 'Metales de transición', x: 7, y: 7, valencia: '7', config: '[Rn] 5f14 6d5 7s2' },
+  { number: 108, symbol: 'Hs', name: 'Hassio', weight: 269, category: 'Metales de transición', x: 8, y: 7, valencia: '8', config: '[Rn] 5f14 6d6 7s2' },
+  { number: 109, symbol: 'Mt', name: 'Meitnerio', weight: 278, category: 'Metales de transición', x: 9, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d7 7s2' },
+  { number: 110, symbol: 'Ds', name: 'Darmstadtio', weight: 281, category: 'Metales de transición', x: 10, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d8 7s2' },
+  { number: 111, symbol: 'Rg', name: 'Roentgenio', weight: 282, category: 'Metales de transición', x: 11, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d9 7s2' },
+  { number: 112, symbol: 'Cn', name: 'Copernicio', weight: 285, category: 'Metales de transición', x: 12, y: 7, valencia: '2', config: '[Rn] 5f14 6d10 7s2' },
+  { number: 113, symbol: 'Nh', name: 'Nihonio', weight: 286, category: 'Otros metales', x: 13, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p1' },
+  { number: 114, symbol: 'Fl', name: 'Flerovio', weight: 289, category: 'Otros metales', x: 14, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p2' },
+  { number: 115, symbol: 'Mc', name: 'Moscovio', weight: 290, category: 'Otros metales', x: 15, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p3' },
+  { number: 116, symbol: 'Lv', name: 'Livermorio', weight: 293, category: 'Otros metales', x: 16, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p4' },
+  { number: 117, symbol: 'Ts', name: 'Teneso', weight: 294, category: 'Halógenos', x: 17, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p5' },
+  { number: 118, symbol: 'Og', name: 'Oganesón', weight: 294, category: 'Gases nobles', x: 18, y: 7, valencia: 'N/A', config: '[Rn] 5f14 6d10 7s2 7p6' },
+  
+  // Lantánidos (Fila 8 Visual)
+  { number: 57, symbol: 'La', name: 'Lantano', weight: 138.91, category: 'Lantánidos', x: 4, y: 9, valencia: '3', config: '[Xe] 5d1 6s2' },
+  { number: 58, symbol: 'Ce', name: 'Cerio', weight: 140.12, category: 'Lantánidos', x: 5, y: 9, valencia: '3, 4', config: '[Xe] 4f1 5d1 6s2' },
+  { number: 59, symbol: 'Pr', name: 'Praseodimio', weight: 140.91, category: 'Lantánidos', x: 6, y: 9, valencia: '3, 4', config: '[Xe] 4f3 6s2' },
+  { number: 60, symbol: 'Nd', name: 'Neodimio', weight: 144.24, category: 'Lantánidos', x: 7, y: 9, valencia: '3', config: '[Xe] 4f4 6s2' },
+  { number: 61, symbol: 'Pm', name: 'Prometio', weight: 145, category: 'Lantánidos', x: 8, y: 9, valencia: '3', config: '[Xe] 4f5 6s2' },
+  { number: 62, symbol: 'Sm', name: 'Samario', weight: 150.36, category: 'Lantánidos', x: 9, y: 9, valencia: '2, 3', config: '[Xe] 4f6 6s2' },
+  { number: 63, symbol: 'Eu', name: 'Europio', weight: 151.96, category: 'Lantánidos', x: 10, y: 9, valencia: '2, 3', config: '[Xe] 4f7 6s2' },
+  { number: 64, symbol: 'Gd', name: 'Gadolinio', weight: 157.25, category: 'Lantánidos', x: 11, y: 9, valencia: '3', config: '[Xe] 4f7 5d1 6s2' },
+  { number: 65, symbol: 'Tb', name: 'Terbio', weight: 158.93, category: 'Lantánidos', x: 12, y: 9, valencia: '3, 4', config: '[Xe] 4f9 6s2' },
+  { number: 66, symbol: 'Dy', name: 'Disprosio', weight: 162.50, category: 'Lantánidos', x: 13, y: 9, valencia: '3', config: '[Xe] 4f10 6s2' },
+  { number: 67, symbol: 'Ho', name: 'Holmio', weight: 164.93, category: 'Lantánidos', x: 14, y: 9, valencia: '3', config: '[Xe] 4f11 6s2' },
+  { number: 68, symbol: 'Er', name: 'Erbio', weight: 167.26, category: 'Lantánidos', x: 15, y: 9, valencia: '3', config: '[Xe] 4f12 6s2' },
+  { number: 69, symbol: 'Tm', name: 'Tulio', weight: 168.93, category: 'Lantánidos', x: 16, y: 9, valencia: '2, 3', config: '[Xe] 4f13 6s2' },
+  { number: 70, symbol: 'Yb', name: 'Iterbio', weight: 173.05, category: 'Lantánidos', x: 17, y: 9, valencia: '2, 3', config: '[Xe] 4f14 6s2' },
+  { number: 71, symbol: 'Lu', name: 'Lutecio', weight: 174.97, category: 'Lantánidos', x: 18, y: 9, valencia: '3', config: '[Xe] 4f14 5d1 6s2' },
+
+  // Actínidos (Fila 9 Visual)
+  { number: 89, symbol: 'Ac', name: 'Actinio', weight: 227, category: 'Actínidos', x: 4, y: 10, valencia: '3', config: '[Rn] 6d1 7s2' },
+  { number: 90, symbol: 'Th', name: 'Torio', weight: 232.04, category: 'Actínidos', x: 5, y: 10, valencia: '4', config: '[Rn] 6d2 7s2' },
+  { number: 91, symbol: 'Pa', name: 'Protactinio', weight: 231.04, category: 'Actínidos', x: 6, y: 10, valencia: '4, 5', config: '[Rn] 5f2 6d1 7s2' },
+  { number: 92, symbol: 'U', name: 'Uranio', weight: 238.03, category: 'Actínidos', x: 7, y: 10, valencia: '3, 4, 5, 6', config: '[Rn] 5f3 6d1 7s2' },
+  { number: 93, symbol: 'Np', name: 'Neptunio', weight: 237, category: 'Actínidos', x: 8, y: 10, valencia: '3, 4, 5, 6', config: '[Rn] 5f4 6d1 7s2' },
+  { number: 94, symbol: 'Pu', name: 'Plutonio', weight: 244, category: 'Actínidos', x: 9, y: 10, valencia: '3, 4, 5, 6', config: '[Rn] 5f6 7s2' },
+  { number: 95, symbol: 'Am', name: 'Americio', weight: 243, category: 'Actínidos', x: 10, y: 10, valencia: '3, 4, 5, 6', config: '[Rn] 5f7 7s2' },
+  { number: 96, symbol: 'Cm', name: 'Curio', weight: 247, category: 'Actínidos', x: 11, y: 10, valencia: '3', config: '[Rn] 5f7 6d1 7s2' },
+  { number: 97, symbol: 'Bk', name: 'Berkelio', weight: 247, category: 'Actínidos', x: 12, y: 10, valencia: '3, 4', config: '[Rn] 5f9 7s2' },
+  { number: 98, symbol: 'Cf', name: 'Californio', weight: 251, category: 'Actínidos', x: 13, y: 10, valencia: '3', config: '[Rn] 5f10 7s2' },
+  { number: 99, symbol: 'Es', name: 'Einstenio', weight: 252, category: 'Actínidos', x: 14, y: 10, valencia: '3', config: '[Rn] 5f11 7s2' },
+  { number: 100, symbol: 'Fm', name: 'Fermio', weight: 257, category: 'Actínidos', x: 15, y: 10, valencia: '3', config: '[Rn] 5f12 7s2' },
+  { number: 101, symbol: 'Md', name: 'Mendelevio', weight: 258, category: 'Actínidos', x: 16, y: 10, valencia: '3', config: '[Rn] 5f13 7s2' },
+  { number: 102, symbol: 'No', name: 'Nobelio', weight: 259, category: 'Actínidos', x: 17, y: 10, valencia: '2, 3', config: '[Rn] 5f14 7s2' },
+  { number: 103, symbol: 'Lr', name: 'Laurencio', weight: 262, category: 'Actínidos', x: 18, y: 10, valencia: '3', config: '[Rn] 5f14 7s2 7p1' },
+];
+
+/** CONFIGURACIÓN DE COLORES PERSONALIZADOS */
+const categoryStyles = {
+  'No metales': { hex: '#ec6911', lightText: true },
+  'Metales alcalinos': { hex: '#01203d', lightText: true },
+  'Alcalinotérreos': { hex: '#fca904', lightText: false },
+  'Metales de transición': { hex: '#0078cc', lightText: true },
+  'Metaloides': { hex: '#dd0034', lightText: true },
+  'Halógenos': { hex: '#93a80f', lightText: true },
+  'Lantánidos': { hex: '#c0ca74', lightText: false },
+  'Otros metales': { hex: '#610d66', lightText: true },
+  'Gases nobles': { hex: '#025b27', lightText: true },
+  'Actínidos': { hex: '#5b9371', lightText: true },
+  'Desconocido': { hex: '#334155', lightText: true }
+};
+
+export default function App() {
+  const [selectedElement, setSelectedElement] = useState(null);
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [view, setView] = useState('table'); // 'table' o 'about'
+
+  const categories = useMemo(() => Object.keys(categoryStyles).filter(c => c !== 'Desconocido'), []);
+
+  if (view === 'about') {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-6 font-sans selection:bg-blue-500/30">
+        <button 
+          onClick={() => setView('table')}
+          className="mb-8 flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-all font-bold group"
+        >
+          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          Volver a la Tabla
+        </button>
+
+        <main className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom duration-500 pb-20">
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 md:p-12 backdrop-blur-xl shadow-2xl">
+            <header className="flex items-center gap-4 mb-10">
+              <div className="bg-blue-600/20 p-4 rounded-2xl text-blue-400">
+                <GraduationCap size={48} />
+              </div>
+              <div>
+                <h1 className="text-4xl font-black text-white">Acerca del Proyecto</h1>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">U.E. P. Miguel de Cervantes • 4to año U</p>
+              </div>
+            </header>
+
+            <div className="grid md:grid-cols-2 gap-12">
+              <section>
+                <div className="flex items-center gap-2 mb-4 text-emerald-400">
+                  <BookOpen size={20} />
+                  <h2 className="text-xl font-bold">Motivo del Proyecto</h2>
+                </div>
+                <div className="bg-slate-950/50 rounded-2xl p-6 border border-slate-800 text-slate-300 leading-relaxed italic">
+                  <p className="mb-4">
+                    [INDICACIÓN PARA EL USUARIO: Escriba aquí el propósito de su investigación escolar 2026.]
+                  </p>
+                  <p>
+                    Este software interactivo fue desarrollado para facilitar la comprensión de las propiedades periódicas de los elementos.
+                  </p>
+                </div>
+              </section>
+
+              <section>
+                <div className="flex items-center gap-2 mb-4 text-indigo-400">
+                  <Users size={20} />
+                  <h2 className="text-xl font-bold">Nuestro Equipo (30 Estudiantes)</h2>
+                </div>
+                <div className="bg-slate-950/50 rounded-2xl p-6 border border-slate-800 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
+                  <p className="text-[10px] text-slate-500 font-black uppercase mb-4 tracking-tighter">Sustituya los nombres a continuación:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-400">
+                    {Array.from({ length: 30 }).map((_, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg border border-slate-800/50">
+                        <span className="text-xs font-mono text-slate-600 font-bold">{idx + 1}.</span>
+                        <span>Estudiante {idx + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans selection:bg-blue-500/30">
+      
+      <div className="flex-1 p-4 pb-12">
+        <header className="mb-8 text-center animate-in fade-in slide-in-from-top duration-700 pt-6">
+          <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 mb-2">
+            Tabla Periódica Interactiva
+          </h1>
+          <p className="text-slate-500 font-medium tracking-wide uppercase text-sm">Base de Datos Completa (118 Elementos)</p>
+        </header>
+
+        <main className="flex flex-col xl:flex-row gap-8 justify-center items-start max-w-[1500px] mx-auto">
+          {/* Categorías */}
+          <div className="w-full xl:w-72 bg-slate-900/50 p-5 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-md sticky top-4">
+            <h3 className="text-sm font-bold uppercase tracking-widest mb-6 text-slate-400 px-2">Filtrar Categorías</h3>
+            <div className="grid grid-cols-2 xl:grid-cols-1 gap-2.5">
+              {categories.map((cat) => {
+                const style = categoryStyles[cat];
+                const isActive = hoveredCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onMouseEnter={() => setHoveredCategory(cat)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    className={`
+                      text-[11px] px-3 py-2.5 rounded-xl transition-all duration-300 text-left flex items-center gap-3 border
+                      ${isActive ? 'bg-slate-800 border-slate-600 shadow-lg scale-[1.02]' : 'bg-transparent border-transparent opacity-70 hover:opacity-100'}
+                    `}
+                  >
+                    <span className="w-4 h-4 rounded-md shadow-sm shrink-0" style={{ backgroundColor: style.hex }} />
+                    <span className={isActive ? 'text-white font-bold' : 'text-slate-300'}>{cat}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Grid de la Tabla */}
+          <div className="flex-1 overflow-x-auto pb-10 scrollbar-thin scrollbar-thumb-slate-700">
+            <div 
+              className="grid gap-1.5 md:gap-2 mx-auto"
+              style={{ 
+                gridTemplateColumns: 'repeat(18, minmax(45px, 1fr))', 
+                minWidth: '1000px',
+                maxWidth: '1200px'
+              }}
+            >
+              {elementsData.map((element) => {
+                const styleCfg = categoryStyles[element.category] || categoryStyles['Desconocido'];
+                const isDimmed = hoveredCategory && hoveredCategory !== element.category;
+                
+                return (
+                  <button
+                    key={`${element.number}-${element.symbol}`}
+                    onClick={() => setSelectedElement(element)}
+                    onMouseEnter={() => setHoveredCategory(element.category)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    className={`
+                      relative flex flex-col items-center justify-center p-1.5 rounded-lg
+                      transition-all duration-300 cursor-pointer transform border
+                      ${isDimmed ? 'opacity-10 grayscale scale-90 blur-[0.5px]' : 'opacity-100 shadow-lg hover:scale-125 hover:z-50 hover:brightness-125'}
+                    `}
+                    style={{
+                      gridColumn: element.x,
+                      gridRow: element.y,
+                      aspectRatio: '1/1',
+                      backgroundColor: styleCfg.hex,
+                      borderColor: 'rgba(255,255,255,0.15)',
+                      color: styleCfg.lightText ? '#ffffff' : '#1a1a1a'
+                    }}
+                  >
+                    <span className="text-[0.6rem] absolute top-1 left-1.5 font-black opacity-60 leading-none">{element.number}</span>
+                    <span className="text-base md:text-xl font-black tracking-tighter leading-none mb-0.5">{element.symbol}</span>
+                    <span className="text-[0.45rem] md:text-[0.55rem] font-bold uppercase truncate w-full text-center px-0.5 leading-none opacity-90">{element.name}</span>
+                  </button>
+                );
+              })}
+
+              {/* Decoración para Lactánidos y Actínidos */}
+              <div style={{ gridColumn: '1/4', gridRow: '9' }} className="flex items-center justify-end pr-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">Lantánidos</div>
+              <div style={{ gridColumn: '1/4', gridRow: '10' }} className="flex items-center justify-end pr-4 text-[10px] font-black text-slate-700 uppercase tracking-widest">Actínidos</div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* Pie de Página */}
+      <footer className="bg-slate-900/90 border-t border-slate-800 p-6 backdrop-blur-md z-40">
+        <div className="max-w-[1400px] mx-auto text-center flex flex-col md:flex-row justify-center items-center gap-2">
+          <span className="text-slate-500 font-medium">U.E. P. Miguel de Cervantes. Proyecto escolar 4to año U, 2026.</span>
+          <button 
+            onClick={() => setView('about')}
+            className="text-blue-400 hover:text-blue-300 font-bold underline decoration-blue-500/30 underline-offset-4 transition-all"
+          >
+            Acerca de Nosotros y el proyecto
+          </button>
+        </div>
+      </footer>
+
+      {/* MODAL DETALLE */}
+      {selectedElement && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="bg-slate-900 w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-800 overflow-hidden relative flex flex-col md:flex-row max-h-[90vh]">
+            <button onClick={() => setSelectedElement(null)} className="absolute top-5 right-5 z-20 bg-slate-800/80 hover:bg-red-500 text-slate-400 hover:text-white p-2.5 rounded-full transition-all">
+              <X size={20} />
+            </button>
+            <div className="w-full md:w-5/12 bg-black/40 p-8 flex items-center justify-center border-r border-slate-800">
+               <div className="relative w-full aspect-square bg-slate-950 rounded-full flex flex-col items-center justify-center border-4 border-dashed border-slate-800 animate-[spin_20s_linear_infinite]">
+                  <div className="animate-[spin_10s_linear_infinite_reverse] flex flex-col items-center">
+                    <span className="text-6xl font-black text-white">{selectedElement.symbol}</span>
+                  </div>
+               </div>
+            </div>
+            <div className="w-full md:w-7/12 p-10 overflow-y-auto">
+              <div className="flex items-center gap-6 mb-10">
+                <div 
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-black shadow-lg"
+                  style={{ backgroundColor: categoryStyles[selectedElement.category]?.hex, color: categoryStyles[selectedElement.category]?.lightText ? '#fff' : '#000' }}
+                >
+                  {selectedElement.symbol}
+                </div>
+                <div>
+                  <h2 className="text-4xl font-black tracking-tight">{selectedElement.name}</h2>
+                  <p className="text-sm font-bold uppercase tracking-widest mt-1" style={{ color: categoryStyles[selectedElement.category]?.hex }}>{selectedElement.category}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-950/50 p-5 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1">Masa Atómica</span>
+                  <p className="text-xl font-bold">{selectedElement.weight} <span className="text-sm text-slate-500 font-normal">u</span></p>
+                </div>
+                <div className="bg-slate-950/50 p-5 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1">Número Atómico</span>
+                  <p className="text-xl font-bold">{selectedElement.number}</p>
+                </div>
+                <div className="bg-slate-950/50 p-5 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1">Valencias</span>
+                  <p className="text-lg font-bold">{selectedElement.valencia}</p>
+                </div>
+                <div className="bg-slate-950/50 p-5 rounded-2xl border border-slate-800">
+                  <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1">Configuración</span>
+                  <p className="text-sm font-mono font-bold text-blue-400">{selectedElement.config}</p>
+                </div>
+              </div>
+
+              <div className="mt-8 p-6 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  El <strong>{selectedElement.name}</strong> es un elemento químico perteneciente a la categoría de {selectedElement.category.toLowerCase()}. 
+                  Su masa atómica es de aproximadamente {selectedElement.weight} u.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
